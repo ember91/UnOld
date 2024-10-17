@@ -1,0 +1,16 @@
+[default]
+extend-ignore-re = [
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+    "-----BEGIN DSA PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN EC PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN OPENSSH PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN PGP PRIVATE KEY BLOCK-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN RSA PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+    "-----BEGIN SSH2 ENCRYPTED PRIVATE KEY-----(?:$|[^-]{63}[^-]*-----END)",
+]
+
+[files]
+extend-exclude = []
+
+[default.extend-words]

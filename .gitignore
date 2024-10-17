@@ -1,0 +1,10 @@
+__pycache__/
+.mypy_cache/
+.nox/
+.pytest_cache/
+.ruff_cache/
+.venv/
+node_modules/
+unold.zip
+vale_styles/
+vale.hash

@@ -1,0 +1,127 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cSpell.enableFiletypes": ["shellscript", "toml"],
+    "cSpell.ignorePaths": [
+      "package-lock.json",
+      "node_modules",
+      "vscode-extension",
+      ".git/objects",
+      ".vscode",
+      ".vscode-insiders"
+    ],
+    "cSpell.words": [
+      "astyle",
+      "blocklist",
+      "charliermarsh",
+      "containerfile",
+      "containerfiles",
+      "debugpy",
+      "dockerfiles",
+      "foxundermoon",
+      "hadolint",
+      "initdb",
+      "mypy",
+      "noxfile",
+      "pacman",
+      "posargs",
+      "pylance",
+      "pytest",
+      "ripgrep",
+      "shfmt",
+      "stkb",
+      "stringio",
+      "tablefmt",
+      "tamasfe",
+      "timonwong",
+      "toplevel",
+      "UNCOMPARABLE",
+      "unold",
+      "UNVERSIONED"
+    ],
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "editor.rulers": [120],
+    "files.watcherExclude": {
+      "/data_files": true,
+      "/.git/": true,
+      "/.nox/": true,
+      "/.venv/": true
+    },
+    "[html]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[markdown]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "prettier.configPath": ".prettierrc.json",
+    "python.defaultInterpreterPath": ".venv/bin/python",
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "rewrap.wrappingColumn": 120,
+    "ruff.format.args": ["--config=pyproject.toml"],
+    "ruff.lint.args": ["--config=pyproject.toml"],
+    "ruff.path": [".venv/bin/ruff"],
+    "[shellscript]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[toml]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    "[yaml]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: unold",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${file}",
+        "console": "integratedTerminal",
+        "justMyCode": true,
+        "args": ["test/containerfiles/alpine.Containerfile"]
+      }
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "charliermarsh.ruff",
+      "esbenp.prettier-vscode",
+      "foxundermoon.shell-format",
+      "ms-python.mypy-type-checker",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "stkb.rewrap",
+      "streetsidesoftware.code-spell-checker",
+      "tamasfe.even-better-toml",
+      "timonwong.shellcheck"
+    ]
+  }
+}

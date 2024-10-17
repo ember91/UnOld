@@ -1,0 +1,112 @@
+[tool.black]
+target-version = ['py39']
+line-length = 120
+skip-string-normalization = true
+preview = true
+
+# List all with 'black --help | grep -- --enable-unstable-feature'
+enable-unstable-feature = [
+    'docstring_check_for_newline',
+    'hex_codes_in_unicode_sequences',
+    'hug_parens_with_braces_and_square_brackets',
+    'is_simple_lookup_for_doublestar_expression',
+    'multiline_string_handling',
+    'no_normalize_fmt_skip_whitespace',
+    'parens_for_long_if_clauses_in_case_block',
+    'pep646_typed_star_arg_type_var_tuple',
+    'remove_redundant_guard_parens',
+    'string_processing',
+    'typed_params_trailing_comma',
+    'unify_docstring_detection',
+    'wrap_long_dict_values_in_parens',
+]
+
+[tool.mypy]
+mypy_path = ["src/"]
+
+
+[tool.pytest.ini_options]
+pythonpath = "src/"
+asyncio_default_fixture_loop_scope = "function"
+
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py39"
+
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+
+[tool.ruff.lint]
+preview = false
+select = [
+    "A",
+    "ANN",
+    "ARG",
+    "ASYNC",
+    "B",
+    "BLE",
+    "C4",
+    "C90",
+    "DTZ",
+    "E",
+    "ERA",
+    "EXE",
+    "F",
+    "FA",
+    "FBT003",
+    "FLY",
+    "FURB",
+    "G",
+    "ICN",
+    "INT",
+    "ISC",
+    "LOG",
+    "N",
+    "NPY",
+    "PERF",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "RET",
+    "RSE",
+    "RUF",
+    #"S",
+    "SIM",
+    "SLF",
+    "SLOT",
+    "TCH",
+    "TRY",
+    "UP",
+    "W505",
+    "YTT",
+]
+
+ignore = [
+    "ANN002",
+    "ANN101",
+    "ANN102",
+    "ANN204",
+    "ISC001",
+    "PLR0904",
+    "PLR0913",
+    "PLR0915",
+    "PLR0917",
+    "PLR2004",
+    "S101",
+    "TRY003",
+]
+
+
+[tool.ruff.lint.per-file-ignores]
+"test/*" = ["SLF"]
+
+
+[tool.vulture]
+exclude = ["noxfile.py"]
