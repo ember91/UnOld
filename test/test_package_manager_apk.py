@@ -114,30 +114,28 @@ def test_parse_install_package_subcommand_flags(pkg_man: PackageManagerApk) -> N
     assert packages[0].version_str == '2.43.0'
 
 
-def test_create_update_and_list_package_versions_command_empty(pkg_man: PackageManagerApk) -> None:
+def test_create_query_versions_command_empty(pkg_man: PackageManagerApk) -> None:
     with pytest.raises(RuntimeError):
-        pkg_man.create_update_and_list_package_versions_command([], [])
+        pkg_man.create_query_versions_command([], [])
 
 
-def test_create_update_and_list_package_versions_command_one(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(['git'], [])
+def test_create_query_versions_command_one(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_query_versions_command(['git'], [])
     assert command == 'apk update -q && apk list git'
 
 
-def test_create_update_and_list_package_versions_command_multiple(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(['git', 'nginx', 'ripgrep'], [])
+def test_create_query_versions_command_multiple(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_query_versions_command(['git', 'nginx', 'ripgrep'], [])
     assert command == 'apk update -q && apk list git nginx ripgrep'
 
 
-def test_create_update_and_list_package_versions_command_forward_one(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(['git'], ['-X', 'repo'])
+def test_create_query_versions_command_forward_one(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_query_versions_command(['git'], ['-X', 'repo'])
     assert command == 'apk update -q && apk list -X repo git'
 
 
-def test_create_update_and_list_package_versions_command_forward_multiple(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(
-        ['git'], ['-X', 'repo1', '--repository', 'repo2', '--arch arch']
-    )
+def test_create_query_versions_command_forward_multiple(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_query_versions_command(['git'], ['-X', 'repo1', '--repository', 'repo2', '--arch arch'])
     assert command == 'apk update -q && apk list -X repo1 --repository repo2 --arch arch git'
 
 

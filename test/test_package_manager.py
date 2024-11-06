@@ -15,9 +15,7 @@ if TYPE_CHECKING:
 
 class PackageManagerStub(PackageManager):
     @override
-    def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: Sequence[str]
-    ) -> str:
+    def create_query_versions_command(self, package_names: Sequence[str], forward_arguments: Sequence[str]) -> str:
         raise NotImplementedError
 
     @override
@@ -39,46 +37,40 @@ def pkg_man() -> PackageManagerStub:
 
 
 def test_parse_install_package_empty(pkg_man: PackageManagerStub) -> None:
-    packages_forwards_prefixes = pkg_man.parse_install_package([])
-    assert packages_forwards_prefixes == []
+    results = pkg_man.parse_install_package([])
+    assert results == []
 
 
 def test_parse_install_package_single(pkg_man: PackageManagerStub) -> None:
-    packages_forwards_prefixes = pkg_man.parse_install_package(['apk', 'add', 'git=2.43.0'])
-    assert len(packages_forwards_prefixes) == 1
-    packages, forwards, command_prefix = packages_forwards_prefixes[0]
-    assert packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == ''
+    results = pkg_man.parse_install_package(['apk', 'add', 'git=2.43.0'])
+    assert len(results) == 1
+    assert results[0].packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
+    assert results[0].forwarded_args == ['-X', 'repo']
+    assert results[0].command_prefix == ''
 
 
 def test_parse_install_package_trailing_semicolon(pkg_man: PackageManagerStub) -> None:
-    packages_forwards_prefixes = pkg_man.parse_install_package(['apk', 'add', 'git=2.43.0', ';'])
-    assert len(packages_forwards_prefixes) == 1
-    packages, forwards, command_prefix = packages_forwards_prefixes[0]
-    assert packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == ''
+    results = pkg_man.parse_install_package(['apk', 'add', 'git=2.43.0', ';'])
+    assert len(results) == 1
+    assert results[0].packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
+    assert results[0].forwarded_args == ['-X', 'repo']
+    assert results[0].command_prefix == ''
 
 
 def test_parse_install_package_multi(pkg_man: PackageManagerStub) -> None:
-    packages_forwards_prefixes = pkg_man.parse_install_package(
+    results = pkg_man.parse_install_package(
         ['apk', 'update', '&&', 'apk', 'add', 'git=2.43.0', '||', 'ls', ';', 'rm', '-rf', '/var/cache/apk/*']
     )
-    assert len(packages_forwards_prefixes) == 4
-    packages, forwards, command_prefix = packages_forwards_prefixes[0]
-    assert packages == [Package('apk'), Package('update')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == ''
-    packages, forwards, command_prefix = packages_forwards_prefixes[1]
-    assert packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == 'apk update'
-    packages, forwards, command_prefix = packages_forwards_prefixes[2]
-    assert packages == [Package('ls')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == 'apk update && apk add git=2.43.0'
-    packages, forwards, command_prefix = packages_forwards_prefixes[3]
-    assert packages == [Package('rm'), Package('-rf'), Package('/var/cache/apk/*')]
-    assert forwards == ['-X', 'repo']
-    assert command_prefix == 'apk update && apk add git=2.43.0 || ls'
+    assert len(results) == 4
+    assert results[0].packages == [Package('apk'), Package('update')]
+    assert results[0].forwarded_args == ['-X', 'repo']
+    assert results[0].command_prefix == ''
+    assert results[1].packages == [Package('apk'), Package('add'), Package('git=2.43.0')]
+    assert results[1].forwarded_args == ['-X', 'repo']
+    assert results[1].command_prefix == 'apk update'
+    assert results[2].packages == [Package('ls')]
+    assert results[2].forwarded_args == ['-X', 'repo']
+    assert results[2].command_prefix == 'apk update && apk add git=2.43.0'
+    assert results[3].packages == [Package('rm'), Package('-rf'), Package('/var/cache/apk/*')]
+    assert results[3].forwarded_args == ['-X', 'repo']
+    assert results[3].command_prefix == 'apk update && apk add git=2.43.0 || ls'

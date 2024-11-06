@@ -4,6 +4,7 @@ import argparse
 import re
 from abc import ABC, abstractmethod
 from contextlib import redirect_stderr
+from dataclasses import dataclass
 from io import StringIO
 from typing import TYPE_CHECKING, override
 
@@ -14,16 +15,23 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+@dataclass(frozen=True)
+class ParseInstallPackageResult:
+    packages: list[Package]
+    forwarded_args: list[str]
+    command_prefix: str
+
+
 class PackageManager(ABC):
-    def parse_install_package(self, command: Sequence[str]) -> list[tuple[list[Package], list[str], str]]:
+    def parse_install_package(self, command: Sequence[str]) -> list[ParseInstallPackageResult]:
         sub_cmd: list[str] = []
-        packages_forwards_prefixes = []
+        results = []
         command_prefix = ''
         for i, s in enumerate(command):
             if s in {'&&', '||', ';'}:
                 packages, forwarded_args = self._parse_install_package_subcommand(sub_cmd)
                 if packages:
-                    packages_forwards_prefixes.append((packages, forwarded_args, command_prefix))
+                    results.append(ParseInstallPackageResult(packages, forwarded_args, command_prefix))
                     command_prefix = ' '.join(command[:i])
                 sub_cmd = []
                 continue
@@ -33,14 +41,12 @@ class PackageManager(ABC):
         if sub_cmd:
             packages, forwarded_args = self._parse_install_package_subcommand(sub_cmd)
             if packages:
-                packages_forwards_prefixes.append((packages, forwarded_args, command_prefix))
+                results.append(ParseInstallPackageResult(packages, forwarded_args, command_prefix))
 
-        return packages_forwards_prefixes
+        return results
 
     @abstractmethod
-    def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: Sequence[str]
-    ) -> str:
+    def create_query_versions_command(self, package_names: Sequence[str], forward_arguments: Sequence[str]) -> str:
         raise NotImplementedError('Subclass this class and override this function')
 
     @abstractmethod
@@ -58,9 +64,7 @@ class PackageManager(ABC):
 
 class PackageManagerApk(PackageManager):
     @override
-    def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: Sequence[str]
-    ) -> str:
+    def create_query_versions_command(self, package_names: Sequence[str], forward_arguments: Sequence[str]) -> str:
         if not package_names:
             raise RuntimeError('No package names supplied')
 
