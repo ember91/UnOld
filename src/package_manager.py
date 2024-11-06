@@ -39,7 +39,7 @@ class PackageManager(ABC):
 
     @abstractmethod
     def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: list[str]
+        self, package_names: Sequence[str], forward_arguments: Sequence[str]
     ) -> str:
         raise NotImplementedError('Subclass this class and override this function')
 
@@ -59,17 +59,13 @@ class PackageManager(ABC):
 class PackageManagerApk(PackageManager):
     @override
     def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: list[str]
+        self, package_names: Sequence[str], forward_arguments: Sequence[str]
     ) -> str:
         if not package_names:
             raise RuntimeError('No package names supplied')
 
-        forward_args_str = ''
-        if forward_arguments:
-            forward_args_str = ' '.join(forward_arguments) + ' '
-        package_names_str = ' '.join(package_names)
-
-        return f'apk update -q && apk list {forward_args_str}{package_names_str}'
+        all_args = list(forward_arguments) + list(package_names)
+        return 'apk update -q && apk list ' + ' '.join(all_args)
 
     @override
     def parse_version(self, package_version_str: str) -> Version | None:

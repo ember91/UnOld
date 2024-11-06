@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class PackageManagerStub(PackageManager):
     @override
     def create_update_and_list_package_versions_command(
-        self, package_names: Sequence[str], forward_arguments: list[str]
+        self, package_names: Sequence[str], forward_arguments: Sequence[str]
     ) -> str:
         raise NotImplementedError
 
