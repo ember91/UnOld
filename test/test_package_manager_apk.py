@@ -1,3 +1,6 @@
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+
 import pytest
 
 from package_manager import PackageManagerApk
@@ -10,8 +13,15 @@ def pkg_man() -> PackageManagerApk:
 
 
 def test_none(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'update'])
+    stdout, stderr = StringIO(), StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        packages = pkg_man._parse_install_package_subcommand(['apk', 'update'])
+
     assert packages == []
+
+    # There may be some extra output from argparse when using an unknown subparser
+    assert stdout.getvalue() == ''
+    assert stderr.getvalue() == ''
 
 
 def test_no_conditional(pkg_man: PackageManagerApk) -> None:

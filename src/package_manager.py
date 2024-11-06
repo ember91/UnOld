@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import re
 from abc import ABC, abstractmethod
+from contextlib import redirect_stderr
+from io import StringIO
 from typing import TYPE_CHECKING, override
 
 from package import Package
@@ -128,7 +130,9 @@ class PackageManagerApk(PackageManager):
             parser_add.add_argument(arg)
 
         try:
-            args_known, args_unknown = parser.parse_known_args(apk_args)
+            # Hide stderr output from argparse
+            with redirect_stderr(StringIO()):
+                args_known, args_unknown = parser.parse_known_args(apk_args)
         except SystemExit:
             return []
 

@@ -8,8 +8,7 @@ from unold import main
 
 
 def test_unavailable_container_manager() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         main(['--container-manager', 'docker-podman', 'test/containerfiles/alpine.Containerfile'])
 
@@ -18,8 +17,7 @@ def test_unavailable_container_manager() -> None:
 
 
 def test_no_file_path_argument() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with pytest.raises(SystemExit), redirect_stdout(stdout), redirect_stderr(stderr):
         main([])
 
@@ -32,8 +30,7 @@ def test_no_file_path_argument() -> None:
 
 
 def test_non_buildable_containerfile() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         assert main(['test/containerfiles/alpine_doesnt_build.Containerfile']) == 1
 
@@ -49,8 +46,7 @@ def test_non_buildable_containerfile() -> None:
 
 
 def test_single_file() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         assert main(['test/containerfiles/alpine.Containerfile']) == 1
 
@@ -63,8 +59,7 @@ def test_single_file() -> None:
 
 
 def test_single_file_multi_stage() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         assert main(['test/containerfiles/alpine_multi_stage.Containerfile']) == 1
 
@@ -85,8 +80,7 @@ def test_single_file_multi_stage() -> None:
 
 
 def test_multiple_files() -> None:
-    stdout = StringIO()
-    stderr = StringIO()
+    stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
         assert main(['test/containerfiles/alpine.Containerfile', 'test/containerfiles/ubuntu.Containerfile']) == 1
 
