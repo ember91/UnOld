@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import argparse
 import re
 from abc import ABC, abstractmethod
-from enum import Enum, auto
 from typing import TYPE_CHECKING, override
 
 from package import Package
@@ -53,12 +53,6 @@ class PackageManager(ABC):
 
 
 class PackageManagerApk(PackageManager):
-    class State(Enum):
-        NOT_IN_APK = auto()
-        IN_APK = auto()
-        IN_APK_ADD = auto()
-        IN_APK_ADD_FLAG = auto()
-
     @override
     def create_update_and_list_package_versions_command(self, package_names: Sequence[str]) -> str:
         if not package_names:
@@ -95,31 +89,53 @@ class PackageManagerApk(PackageManager):
 
     @override
     def _parse_install_package_subcommand(self, command: Sequence[str]) -> list[Package]:
-        arguments_with_values = {'-t', '--virtual'}
+        try:
+            apk_idx = command.index('apk')
+        except ValueError:
+            return []
 
-        packages = []
+        apk_args = command[apk_idx + 1 :]
 
-        state = PackageManagerApk.State.NOT_IN_APK
-        for s in command:
-            # TODO: Use match-case in Python3.10
-            if state == PackageManagerApk.State.NOT_IN_APK:
-                if s == 'apk':
-                    state = PackageManagerApk.State.IN_APK
-            elif state == PackageManagerApk.State.IN_APK:
-                if s == 'add':
-                    state = PackageManagerApk.State.IN_APK_ADD
-            elif state == PackageManagerApk.State.IN_APK_ADD:
-                if s.startswith('-'):
-                    if s in arguments_with_values:
-                        state = PackageManagerApk.State.IN_APK_ADD_FLAG
-                else:
-                    packages.append(PackageManagerApk._create_package(s))
-            elif state == PackageManagerApk.State.IN_APK_ADD_FLAG:
-                state = PackageManagerApk.State.IN_APK_ADD
-            else:
-                raise RuntimeError(f'Unexpected state {state}')
+        parser = argparse.ArgumentParser()
+        parser_parent = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers(dest='command')
+        parser_add = subparsers.add_parser('add', parents=[parser_parent], add_help=False)
 
-        return packages
+        # See:
+        # - https://man.archlinux.org/man/extra/apk-tools/apk.8.en
+        # - https://man.archlinux.org/man/extra/apk-tools/apk-add.8.en
+        apk_args_with_values = [
+            '--cache-dir',
+            '--cache-max-age',
+            '--keys-dir',
+            '--progress-fd',
+            '--repositories-file',
+            '--repository',
+            '--root',
+            '--timeout',
+            '--wait',
+            '-p',
+            '-X',
+        ]
+        apk_add_args_with_values = [
+            '-t',
+            '--virtual',
+        ]
+
+        for arg in apk_args_with_values:
+            parser_parent.add_argument(arg)
+        for arg in apk_add_args_with_values:
+            parser_add.add_argument(arg)
+
+        try:
+            args_known, args_unknown = parser.parse_known_args(apk_args)
+        except SystemExit:
+            return []
+
+        if args_known.command != 'add':
+            return []
+
+        return [PackageManagerApk._create_package(arg) for arg in args_unknown if not arg.startswith('-')]
 
     @staticmethod
     def _create_package(package_str: str) -> Package:
