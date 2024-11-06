@@ -4,7 +4,11 @@ UnOld - List outdated package versions in containerfiles/dockerfiles.
 
 **WARNING:** This software is far from finished. Use with caution. **WARNING:**
 
+<!-- vale off -->
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<!-- vale on -->
 
 ## Getting started
 
@@ -95,7 +99,11 @@ In broad strokes UnOld does the following:
 
 Why do it this way? Although UnOld might do some extra work it will work with many different containerfiles.
 
+<!-- vale off -->
+
 ## Alternatives
+
+<!-- vale on -->
 
 Some projects try to solve the problem in other ways:
 
@@ -108,4 +116,8 @@ Open a GitHub issue or pull request.
 
 ## License
 
+<!-- vale off -->
+
 [MIT license](LICENSE).
+
+<!-- vale on -->
