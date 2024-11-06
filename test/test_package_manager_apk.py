@@ -12,10 +12,10 @@ def pkg_man() -> PackageManagerApk:
     return PackageManagerApk()
 
 
-def test_none(pkg_man: PackageManagerApk) -> None:
+def test_parse_install_package_subcommand_none(pkg_man: PackageManagerApk) -> None:
     stdout, stderr = StringIO(), StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
-        packages = pkg_man._parse_install_package_subcommand(['apk', 'update'])
+        packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'update'])
 
     assert packages == []
 
@@ -24,68 +24,68 @@ def test_none(pkg_man: PackageManagerApk) -> None:
     assert stderr.getvalue() == ''
 
 
-def test_no_conditional(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git'])
+def test_parse_install_package_subcommand_no_conditional(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.NONE
     assert packages[0].version_str is None
 
 
-def test_wrong_argument_order(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['add', 'apk', 'git'])
+def test_parse_install_package_subcommand_wrong_argument_order(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['add', 'apk', 'git'])
     assert packages == []
 
 
-def test_less_than(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git<2.43.0'])
+def test_parse_install_package_subcommand_less_than(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git<2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.LESS_THAN
     assert packages[0].version_str == '2.43.0'
 
 
-def test_equality(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git=2.43.0'])
+def test_parse_install_package_subcommand_equality(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git=2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.EQUALITY
     assert packages[0].version_str == '2.43.0'
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git==2.43.0'])
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git==2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.EQUALITY
     assert packages[0].version_str == '2.43.0'
 
 
-def test_larger_than(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git>2.43.0'])
+def test_parse_install_package_subcommand_larger_than(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git>2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.GREATER_THAN
     assert packages[0].version_str == '2.43.0'
 
 
-def test_fuzzy(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git~2.43.0'])
+def test_parse_install_package_subcommand_fuzzy(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git~2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.FUZZY
     assert packages[0].version_str == '2.43.0'
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git~=2.43.0'])
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git~=2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.FUZZY
     assert packages[0].version_str == '2.43.0'
-    packages = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git=~2.43.0'])
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git=~2.43.0'])
     assert len(packages) == 1
     assert packages[0].name == 'git'
     assert packages[0].conditional == VersionConditional.FUZZY
     assert packages[0].version_str == '2.43.0'
 
 
-def test_multiple(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(
+def test_parse_install_package_subcommand_multiple(pkg_man: PackageManagerApk) -> None:
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(
         ['apk', 'add', 'git=2.43.0', 'nginx<1.26.2', 'ripgrep>14.1.1', 'astyle=~3.6.3']
     )
     assert len(packages) == 4
@@ -103,9 +103,10 @@ def test_multiple(pkg_man: PackageManagerApk) -> None:
     assert packages[3].version_str == '3.6.3'
 
 
-def test_flags(pkg_man: PackageManagerApk) -> None:
-    packages = pkg_man._parse_install_package_subcommand(
-        ['PATH=/usr/local/bin', 'sudo', 'apk', '-q', '-i', 'add', '--initdb', '-t', 'NAME', 'git=2.43.0']
+def test_parse_install_package_subcommand_flags(pkg_man: PackageManagerApk) -> None:
+    # Try tricking the parser since -t takes an argument which should not be misparsed as a package
+    packages, forwarded_args = pkg_man._parse_install_package_subcommand(
+        ['PATH=/usr/local/bin', 'sudo', 'apk', '-q', '-i', 'add', '--initdb', '-t', 'nginx=1.26.2', 'git=2.43.0']
     )
     assert len(packages) == 1
     assert packages[0].name == 'git'
@@ -115,17 +116,29 @@ def test_flags(pkg_man: PackageManagerApk) -> None:
 
 def test_create_update_and_list_package_versions_command_empty(pkg_man: PackageManagerApk) -> None:
     with pytest.raises(RuntimeError):
-        pkg_man.create_update_and_list_package_versions_command([])
+        pkg_man.create_update_and_list_package_versions_command([], [])
 
 
 def test_create_update_and_list_package_versions_command_one(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(['git'])
+    command = pkg_man.create_update_and_list_package_versions_command(['git'], [])
     assert command == 'apk update -q && apk list git'
 
 
 def test_create_update_and_list_package_versions_command_multiple(pkg_man: PackageManagerApk) -> None:
-    command = pkg_man.create_update_and_list_package_versions_command(['git', 'nginx', 'ripgrep'])
+    command = pkg_man.create_update_and_list_package_versions_command(['git', 'nginx', 'ripgrep'], [])
     assert command == 'apk update -q && apk list git nginx ripgrep'
+
+
+def test_create_update_and_list_package_versions_command_forward_one(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_update_and_list_package_versions_command(['git'], ['-X', 'repo'])
+    assert command == 'apk update -q && apk list -X repo git'
+
+
+def test_create_update_and_list_package_versions_command_forward_multiple(pkg_man: PackageManagerApk) -> None:
+    command = pkg_man.create_update_and_list_package_versions_command(
+        ['git'], ['-X', 'repo1', '--repository', 'repo2', '--arch arch']
+    )
+    assert command == 'apk update -q && apk list -X repo1 --repository repo2 --arch arch git'
 
 
 def test_parse_version_string(pkg_man: PackageManagerApk) -> None:

@@ -105,10 +105,10 @@ def read_packages(
     for layer in layers:
         if layer.cmd.casefold() == 'run'.casefold():
             command = shlex.split(layer.value[0])
-            packages_and_command_prefixes = package_manager.parse_install_package(command)
+            packages_forwards_prefixes = package_manager.parse_install_package(command)
             install_locations.extend(
-                InstallLocation(packages, file_path, layer.start_line - 1, package_manager, command_prefix)
-                for packages, command_prefix in packages_and_command_prefixes
+                InstallLocation(packages, file_path, layer.start_line - 1, package_manager, forwards, command_prefix)
+                for packages, forwards, command_prefix in packages_forwards_prefixes
             )
     return install_locations
 
@@ -119,7 +119,9 @@ def check_install_location(
     package_manager = PackageManagerApk()  # TODO
 
     package_names = [package.name for package in install_location.packages]
-    package_str = package_manager.create_update_and_list_package_versions_command(package_names)
+    package_str = package_manager.create_update_and_list_package_versions_command(
+        package_names, install_location.argument_forwards
+    )
     version_query_containerfile = generate_containerfile_contents(
         containerfile_contents,
         package_str,

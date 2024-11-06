@@ -11,4 +11,5 @@ class InstallLocation:
     containerfile_path: Path
     containerfile_start_line: int  # Zero indexed
     package_manager: PackageManager
+    argument_forwards: list[str]
     command_prefix: str

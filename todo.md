@@ -1,6 +1,6 @@
 # TODO
 
-- Forward --repository, -X, --arch
+- Make a tag and a release
 - What happens if a variable is a package name or package version?
 - asyncio - Build and start containerfiles async
 - Add more package managers such as apt, dnf, pacman, yum, zypper

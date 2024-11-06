@@ -15,15 +15,15 @@ if TYPE_CHECKING:
 
 
 class PackageManager(ABC):
-    def parse_install_package(self, command: Sequence[str]) -> list[tuple[list[Package], str]]:
+    def parse_install_package(self, command: Sequence[str]) -> list[tuple[list[Package], list[str], str]]:
         sub_cmd: list[str] = []
-        packages_and_prefixes = []
+        packages_forwards_prefixes = []
         command_prefix = ''
         for i, s in enumerate(command):
             if s in {'&&', '||', ';'}:
-                packages = self._parse_install_package_subcommand(sub_cmd)
+                packages, forwarded_args = self._parse_install_package_subcommand(sub_cmd)
                 if packages:
-                    packages_and_prefixes.append((packages, command_prefix))
+                    packages_forwards_prefixes.append((packages, forwarded_args, command_prefix))
                     command_prefix = ' '.join(command[:i])
                 sub_cmd = []
                 continue
@@ -31,14 +31,16 @@ class PackageManager(ABC):
             sub_cmd.append(s)
 
         if sub_cmd:
-            packages = self._parse_install_package_subcommand(sub_cmd)
+            packages, forwarded_args = self._parse_install_package_subcommand(sub_cmd)
             if packages:
-                packages_and_prefixes.append((packages, command_prefix))
+                packages_forwards_prefixes.append((packages, forwarded_args, command_prefix))
 
-        return packages_and_prefixes
+        return packages_forwards_prefixes
 
     @abstractmethod
-    def create_update_and_list_package_versions_command(self, package_names: Sequence[str]) -> str:
+    def create_update_and_list_package_versions_command(
+        self, package_names: Sequence[str], forward_arguments: list[str]
+    ) -> str:
         raise NotImplementedError('Subclass this class and override this function')
 
     @abstractmethod
@@ -50,16 +52,24 @@ class PackageManager(ABC):
         raise NotImplementedError('Subclass this class and override this function')
 
     @abstractmethod
-    def _parse_install_package_subcommand(self, command: Sequence[str]) -> list[Package]:
+    def _parse_install_package_subcommand(self, command: Sequence[str]) -> tuple[list[Package], list[str]]:
         raise NotImplementedError('Subclass this class and override this function')
 
 
 class PackageManagerApk(PackageManager):
     @override
-    def create_update_and_list_package_versions_command(self, package_names: Sequence[str]) -> str:
+    def create_update_and_list_package_versions_command(
+        self, package_names: Sequence[str], forward_arguments: list[str]
+    ) -> str:
         if not package_names:
             raise RuntimeError('No package names supplied')
-        return 'apk update -q && apk list ' + ' '.join(package_names)
+
+        forward_args_str = ''
+        if forward_arguments:
+            forward_args_str = ' '.join(forward_arguments) + ' '
+        package_names_str = ' '.join(package_names)
+
+        return f'apk update -q && apk list {forward_args_str}{package_names_str}'
 
     @override
     def parse_version(self, package_version_str: str) -> Version | None:
@@ -90,11 +100,11 @@ class PackageManagerApk(PackageManager):
         )
 
     @override
-    def _parse_install_package_subcommand(self, command: Sequence[str]) -> list[Package]:
+    def _parse_install_package_subcommand(self, command: Sequence[str]) -> tuple[list[Package], list[str]]:
         try:
             apk_idx = command.index('apk')
         except ValueError:
-            return []
+            return [], []
 
         apk_args = command[apk_idx + 1 :]
 
@@ -107,6 +117,7 @@ class PackageManagerApk(PackageManager):
         # - https://man.archlinux.org/man/extra/apk-tools/apk.8.en
         # - https://man.archlinux.org/man/extra/apk-tools/apk-add.8.en
         apk_args_with_values = [
+            '--arch',
             '--cache-dir',
             '--cache-max-age',
             '--keys-dir',
@@ -132,14 +143,25 @@ class PackageManagerApk(PackageManager):
         try:
             # Hide stderr output from argparse
             with redirect_stderr(StringIO()):
+                args_parent_known, _ = parser_parent.parse_known_args(apk_args)
                 args_known, args_unknown = parser.parse_known_args(apk_args)
         except SystemExit:
-            return []
+            return [], []
 
         if args_known.command != 'add':
-            return []
+            return [], []
 
-        return [PackageManagerApk._create_package(arg) for arg in args_unknown if not arg.startswith('-')]
+        forwarded_args = []
+        if args_parent_known.arch:
+            forwarded_args.extend(['--arch', args_parent_known.arch])
+        if args_parent_known.repository:
+            forwarded_args.extend(['--repository', args_parent_known.repository])
+        if args_parent_known.X:
+            forwarded_args.extend(['-X', args_parent_known.X])
+
+        return [
+            PackageManagerApk._create_package(arg) for arg in args_unknown if not arg.startswith('-')
+        ], forwarded_args
 
     @staticmethod
     def _create_package(package_str: str) -> Package:
