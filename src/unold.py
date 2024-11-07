@@ -15,11 +15,13 @@ from typing import TYPE_CHECKING
 import dockerfile  # type: ignore[import-not-found]
 
 from install_location import InstallLocation
-from package_manager import PackageManager, PackageManagerApk
+from package_manager_apk import PackageManagerApk
 from version import Version, VersionComparison, VersionConditional
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from package_manager import PackageManager
 
 
 def main(args_cmd_line: Sequence[str] | None = None) -> int:

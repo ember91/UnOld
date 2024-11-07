@@ -3,7 +3,7 @@ from io import StringIO
 
 import pytest
 
-from package_manager import PackageManagerApk
+from package_manager_apk import PackageManagerApk
 from version import Version, VersionConditional
 
 
