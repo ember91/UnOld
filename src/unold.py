@@ -73,15 +73,15 @@ def is_command_available(command: str) -> bool:
 def check_file(container_manager: str, file_path: Path) -> bool:
     success = True
 
-    package_manager = PackageManagerApk()  # TODO
+    package_managers = [PackageManagerApk()]
 
     containerfile_contents = file_path.read_text(encoding='utf-8')
     layers = parse_containerfile_contents(containerfile_contents)
 
-    install_locations = read_packages(layers, package_manager, file_path)
+    install_locations = read_packages(layers, package_managers, file_path)
     for install_location in install_locations:
         for package in install_location.packages:
-            package.version = package_manager.parse_version_string(package.name, package.version_str)
+            package.version = install_location.package_manager.parse_version_string(package.name, package.version_str)
 
     with tempfile.TemporaryDirectory(prefix='unold_') as dir_tmp_str:
         dir_tmp_path = Path(dir_tmp_str)
@@ -98,35 +98,36 @@ def parse_containerfile_contents(contents: str) -> tuple[dockerfile.Command, ...
 
 def read_packages(
     layers: tuple[dockerfile.Command, ...],
-    package_manager: PackageManager,
+    package_managers: Sequence[PackageManager],
     file_path: Path,
 ) -> list[InstallLocation]:
     install_locations: list[InstallLocation] = []
     for layer in layers:
         if layer.cmd.casefold() == 'run'.casefold():
-            command = shlex.split(layer.value[0])
-            parse_install_package_results = package_manager.parse_install_package(command)
-            install_locations.extend(
-                InstallLocation(
-                    result.packages,
-                    file_path,
-                    layer.start_line - 1,
-                    package_manager,
-                    result.forwarded_args,
-                    result.command_prefix,
+            for package_manager in package_managers:
+                command = shlex.split(layer.value[0])
+                parse_install_package_results = package_manager.parse_install_package(command)
+                install_locations.extend(
+                    InstallLocation(
+                        result.packages,
+                        file_path,
+                        layer.start_line - 1,
+                        package_manager,
+                        result.forwarded_args,
+                        result.command_prefix,
+                    )
+                    for result in parse_install_package_results
                 )
-                for result in parse_install_package_results
-            )
     return install_locations
 
 
 def check_install_location(
     install_location: InstallLocation, container_manager: str, containerfile_contents: str, dir_path: Path
 ) -> bool:
-    package_manager = PackageManagerApk()  # TODO
-
     package_names = [package.name for package in install_location.packages]
-    package_str = package_manager.create_query_versions_command(package_names, install_location.argument_forwards)
+    package_str = install_location.package_manager.create_query_versions_command(
+        package_names, install_location.argument_forwards
+    )
     version_query_containerfile = generate_containerfile_contents(
         containerfile_contents,
         package_str,
@@ -139,7 +140,7 @@ def check_install_location(
     build_image(container_manager, version_query_containerfile, dir_path, image_name)
     results = run_container_from_image(container_manager, image_name)
     version_strings = results.splitlines()
-    packages_and_versions = parse_versions(version_strings, package_manager)
+    packages_and_versions = parse_versions(version_strings, install_location.package_manager)
     return compare_versions(install_location, packages_and_versions)
 
 
