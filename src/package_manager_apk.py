@@ -53,9 +53,12 @@ class PackageManagerApk(PackageManager):
 
     @override
     def _parse_install_package_subcommand(self, command: Sequence[str]) -> tuple[list[Package], list[str]]:
-        try:
-            apk_idx = command.index('apk')
-        except ValueError:
+        for apk_idx, sub_command in enumerate(command):
+            if sub_command == 'sudo' or re.match('[A-Za-z_][A-Za-z0-9_]*=', sub_command):
+                continue
+            if sub_command == 'apk':
+                apk_args = command[apk_idx + 1 :]
+                break
             return [], []
 
         apk_args = command[apk_idx + 1 :]

@@ -25,6 +25,15 @@ def test_parse_install_package_subcommand_none(pkg_man: PackageManagerApk) -> No
     assert stderr.getvalue() == ''
 
 
+def test_parse_install_package_subcommand_fake(pkg_man: PackageManagerApk) -> None:
+    stdout, stderr = StringIO(), StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        packages, forwarded_args = pkg_man._parse_install_package_subcommand(['ls', 'apk', 'add', 'git'])
+
+    assert packages == []
+    assert forwarded_args == []
+
+
 def test_parse_install_package_subcommand_no_conditional(pkg_man: PackageManagerApk) -> None:
     packages, forwarded_args = pkg_man._parse_install_package_subcommand(['apk', 'add', 'git'])
     assert len(packages) == 1
