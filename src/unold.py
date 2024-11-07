@@ -52,11 +52,10 @@ def parse_arguments(args_cmd_line: Sequence[str] | None) -> argparse.Namespace:
         description='Check if containerfiles (such as dockerfiles) have up to date packages',
     )
 
-    # TODO: Change this default from podman to docker
     parser.add_argument(
         '-c',
         '--container-manager',
-        default='podman',
+        default='docker',
         help=(
             'Container manager, such as podman or docker. Ensure that either it is available in $PATH or pass its '
             'absolute path.'
